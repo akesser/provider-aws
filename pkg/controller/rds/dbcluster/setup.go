@@ -153,8 +153,13 @@ func preUpdate(_ context.Context, cr *svcapitypes.DBCluster, obj *svcsdk.ModifyD
 
 func preDelete(_ context.Context, cr *svcapitypes.DBCluster, obj *svcsdk.DeleteDBClusterInput) (bool, error) {
 	obj.DBClusterIdentifier = aws.String(meta.GetExternalName(cr))
-	obj.FinalDBSnapshotIdentifier = aws.String(cr.Spec.ForProvider.FinalDBSnapshotIdentifier)
+
 	obj.SkipFinalSnapshot = aws.Bool(cr.Spec.ForProvider.SkipFinalSnapshot)
+
+	// aws cant handle SkipFinalSnapshot and FinalDBSnapshotIdentifier at the same time
+	if !cr.Spec.ForProvider.SkipFinalSnapshot {
+		obj.FinalDBSnapshotIdentifier = aws.String(cr.Spec.ForProvider.FinalDBSnapshotIdentifier)
+	}
 	return false, nil
 }
 
